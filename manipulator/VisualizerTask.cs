@@ -13,6 +13,8 @@ namespace Manipulation
 		public static double Wrist = 2 * Math.PI / 3;
 		public static double Elbow = 3 * Math.PI / 4;
 		public static double Shoulder = Math.PI / 2;
+		public static double DeltaAngle = Math.PI / 128;
+		public static float JointRadius = 25.0f;
 
 		public static Brush UnreachableAreaBrush = new SolidBrush(Color.FromArgb(255, 255, 230, 230));
 		public static Brush ReachableAreaBrush = new SolidBrush(Color.FromArgb(255, 230, 255, 230));
@@ -21,31 +23,51 @@ namespace Manipulation
 
 		public static void KeyDown(Form form, KeyEventArgs key)
 		{
-			// TODO: Добавьте реакцию на QAWS и пересчитывать Wrist
-			form.Invalidate(); // 
+			switch (key.KeyCode)
+			{
+				case Keys.Q:
+					Shoulder += DeltaAngle;
+					break;
+				case Keys.A:
+					Shoulder -= DeltaAngle;
+					break;
+				case Keys.W:
+					Elbow += DeltaAngle;
+					break;
+				case Keys.S:
+					Elbow -= DeltaAngle;
+					break;
+				default:
+					break;
+			}
+			Wrist = -Alpha - Shoulder - Elbow;
+			form.Invalidate();
 		}
-
 
 		public static void MouseMove(Form form, MouseEventArgs e)
 		{
-			// TODO: Измените X и Y пересчитав координаты (e.X, e.Y) в логические.
-
+			X = ConvertWindowToMath(new PointF(e.X, e.Y), GetShoulderPos(form)).X;
+			Y = ConvertWindowToMath(new PointF(e.X, e.Y), GetShoulderPos(form)).Y;
 			UpdateManipulator();
 			form.Invalidate();
 		}
 
 		public static void MouseWheel(Form form, MouseEventArgs e)
 		{
-			// TODO: Измените Alpha, используя e.Delta — размер прокрутки колеса мыши
-
+			Alpha += e.Delta;
 			UpdateManipulator();
 			form.Invalidate();
 		}
 
 		public static void UpdateManipulator()
 		{
-			// Вызовите ManipulatorTask.MoveManipulatorTo и обновите значения полей Shoulder, Elbow и Wrist, 
-            // если они не NaN. Это понадобится для последней задачи.
+			var angles = ManipulatorTask.MoveManipulatorTo(X, Y, Alpha);
+			if ((angles[0] != double.NaN) && (angles[1] != double.NaN) && (angles[2] != double.NaN))
+			{
+				Shoulder = angles[0];
+				Elbow = angles[1];
+				Wrist = angles[2];
+			}
 		}
 
 		public static void DrawManipulator(Graphics graphics, PointF shoulderPos)
@@ -53,24 +75,27 @@ namespace Manipulation
 			var joints = AnglesToCoordinatesTask.GetJointPositions(Shoulder, Elbow, Wrist);
 
 			graphics.DrawString(
-                $"X={X:0}, Y={Y:0}, Alpha={Alpha:0.00}", 
-                new Font(SystemFonts.DefaultFont.FontFamily, 12), 
-                Brushes.DarkRed, 
-                10, 
-                10);
+				$"X={X:0}, Y={Y:0}, Alpha={Alpha:0.00}\nGreen - reachable area\nPink - unreachable area",
+				new Font(SystemFonts.DefaultFont.FontFamily, 12),
+				Brushes.DarkRed,
+				10,
+				10);
 			DrawReachableZone(graphics, ReachableAreaBrush, UnreachableAreaBrush, shoulderPos, joints);
-
-			// Нарисуйте сегменты манипулятора методом graphics.DrawLine используя ManipulatorPen.
-			// Нарисуйте суставы манипулятора окружностями методом graphics.FillEllipse используя JointBrush.
-			// Не забудьте сконвертировать координаты из логических в оконные
+			for (int i = 0; i < joints.Length; i++)
+				joints[i] = ConvertMathToWindow(joints[i], shoulderPos);
+			graphics.DrawLine(ManipulatorPen, ConvertMathToWindow(new PointF(0, 0), shoulderPos), joints[0]);
+			graphics.DrawLine(ManipulatorPen, joints[0], joints[1]);
+			graphics.DrawLine(ManipulatorPen, joints[1], joints[2]);
+			for (int i = 0; i < 3; i++)
+				graphics.FillEllipse(JointBrush, joints[i].X - JointRadius / 2, joints[i].Y - JointRadius / 2, JointRadius, JointRadius);
 		}
 
 		private static void DrawReachableZone(
-            Graphics graphics, 
-            Brush reachableBrush, 
-            Brush unreachableBrush, 
-            PointF shoulderPos, 
-            PointF[] joints)
+			Graphics graphics,
+			Brush reachableBrush,
+			Brush unreachableBrush,
+			PointF shoulderPos,
+			PointF[] joints)
 		{
 			var rmin = Math.Abs(Manipulator.UpperArm - Manipulator.Forearm);
 			var rmax = Manipulator.UpperArm + Manipulator.Forearm;
@@ -94,6 +119,5 @@ namespace Manipulation
 		{
 			return new PointF(windowPoint.X - shoulderPos.X, shoulderPos.Y - windowPoint.Y);
 		}
-
 	}
 }
