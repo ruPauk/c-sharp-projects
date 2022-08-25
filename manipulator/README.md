@@ -3,9 +3,14 @@ In this series of tasks I was supposed to code a robotic arm (kind of).
 
 The concept is represented on the diagram down below.
 
-<p align="center">
-  <img src="https://github.com/ruPauk/ulearn-me-c-sharp-practice/blob/main/manipulator/manipulator.png">
-</p>
+<div align="center" >
+  <img src="/manipulator/manipulator.png">
+</div>
+
+Result:
+<div align="center" >
+  <img src="/manipulator/Manipulator.gif">
+</div>
 
 ## Installing
 
@@ -46,4 +51,4 @@ Finally, I implemented `MoveManipulatorTo` method in `ManipulatorTask` class.
 It returns `new[] {shoulder, elbow, wrist}` array of angles needed to bring the manipulator's tip to position `(x, y)` relative to the anchor `(0, 0)`. On top of that, the angle between the last joint and horizontal had to remain equal to `alpha`.
 If impossible, it should return an array of three `double.NaN`.
 
-Random unit test is included in the same file following ulearn.me task to pass the automatic platform tests.
+Randomized unit test is included in the same file following ulearn.me task to pass the automatic platform tests.
