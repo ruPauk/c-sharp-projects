@@ -4,13 +4,14 @@ In this series of tasks I was supposed to code a robotic arm (kind of).
 The concept is represented on the diagram down below.
 
 <div align="center" >
-  <img src="/manipulator/manipulator.png">
+  <img width="50%" src="/manipulator/manipulator.png">
 </div>
 
-Result:
-<div align="center" >
-  <img src="/manipulator/Manipulator.gif">
-</div>
+And that's what the result looks like.
+
+Moving the manipulator tip with a mouse|Changing alpha angle with a mouse wheel
+:-------------------------:|:-------------------------:
+![](/manipulator/Manipulator.gif) | ![](/manipulator/ManipulatorAlpha.gif)
 
 ## Installing
 
