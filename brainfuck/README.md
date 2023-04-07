@@ -14,7 +14,6 @@ This task served as delegates training.
 
 You are supposed to enter Brainfuck commands into the console and press `ENTER`.
 For example, enter "++++++++[>++++++++<-]>+." (without quotation marks) to get an "A" symbol printed out.
-To 
 
 ## Tasks
 
@@ -23,7 +22,7 @@ To
 The first task was to implement some sort of virtual machine. The concept is to store possible commands as actions with possibility to easily extent command pool.
 Aslo is has to store instructions and execute them in the given order.
 
-:heavy_check_mark: BrainfuckBasicCommandsTask](https://ulearn.me/course/basicprogramming2/Praktika_Prostye_komandy_Brainfuck__5eb14a3a-d030-4ca0-8f39-79daa0ba48ec)
+:heavy_check_mark: [BrainfuckBasicCommandsTask](https://ulearn.me/course/basicprogramming2/Praktika_Prostye_komandy_Brainfuck__5eb14a3a-d030-4ca0-8f39-79daa0ba48ec)
 
 Here I had to register the standard pool of Brainfuck commands except loops.
 <div align="center" >
