@@ -1,15 +1,16 @@
-﻿namespace Clones;
-
-public interface ICloneVersionSystem
+﻿namespace Clones
 {
-	string Execute(string query);
-}
-
-public class Factory
-{
-	public static ICloneVersionSystem CreateCVS()
+	public interface ICloneVersionSystem
 	{
-		return new CloneVersionSystem();
-		//return new checking.CloneVersionSystemSolved();
+		string Execute(string query);
+	}
+
+	public class Factory
+	{
+		public static ICloneVersionSystem CreateCVS()
+		{
+			return new CloneVersionSystem();
+			//return new checking.CloneVersionSystemSolved();
+		}
 	}
 }

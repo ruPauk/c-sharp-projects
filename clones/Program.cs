@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Linq;
 
-namespace Clones;
-
-class Program
+namespace Clones
 {
-	static void Main(string[] args)
+	class Program
 	{
-		var n = (Console.ReadLine() ?? "")
-			.Split().Select(int.Parse).First();
-		var clones = new CloneVersionSystem();
-		for (var i = 0; i < n; i++)
+		static void Main(string[] args)
 		{
-			var query = Console.ReadLine();
-			if (query == null) continue;
-			var result = clones.Execute(query);
-			if (result != null)
-				Console.WriteLine(result);
+			var n = (Console.ReadLine() ?? "")
+				.Split().Select(int.Parse).First();
+			var clones = new CloneVersionSystem();
+			for (var i = 0; i < n; i++)
+			{
+				var query = Console.ReadLine();
+				if (query == null) continue;
+				var result = clones.Execute(query);
+				if (result != null)
+					Console.WriteLine(result);
+			}
 		}
 	}
 }
