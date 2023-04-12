@@ -22,8 +22,11 @@ public class LevelsTask
 		Gravity blackHoleGravityDelegate = (size, v) => BlackHoleGravity(v, targetConst, initialRocketLocationConst);
 		yield return GenerateLevel("BlackHole", blackHoleGravityDelegate, targetConst);
 
-		Gravity blackAndWhiteDelegate = (size, v) => new Vector(whiteHoleGravityDelegate(size, v).X + blackHoleGravityDelegate(size, v).X, whiteHoleGravityDelegate(size, v).Y + blackHoleGravityDelegate(size, v).Y);
-		yield return GenerateLevel("BlackAndWhite", (size, v) => new Vector(blackAndWhiteDelegate(size, v).X / 2, blackAndWhiteDelegate(size, v).Y / 2), targetConst);
+		Gravity blackAndWhiteDelegate = (size, v) => 
+			new Vector(whiteHoleGravityDelegate(size, v).X + blackHoleGravityDelegate(size, v).X,
+			whiteHoleGravityDelegate(size, v).Y + blackHoleGravityDelegate(size, v).Y);
+		yield return GenerateLevel("BlackAndWhite", (size, v) => new Vector(blackAndWhiteDelegate(size, v).X / 2,
+			blackAndWhiteDelegate(size, v).Y / 2), targetConst);
 	}
 
 	private static Vector WhiteHoleGravity(Vector v, Vector target)
@@ -31,29 +34,14 @@ public class LevelsTask
 		var d = (target - v).Length;
 		var normalizedVector = (target - v).Normalize();
 		return  normalizedVector * (-140 * d) / (d * d + 1);
-
 	}
 
-		private static Vector BlackHoleGravity(Vector v, Vector target, Vector initialRocketLocation)
+	private static Vector BlackHoleGravity(Vector v, Vector target, Vector initialRocketLocation)
 	{
-		var anomaly = (target - initialRocketLocation) / 2;
-
-
-		var d = anomaly.Length / 2;
-		//var anomalyVector = (target - initialRocketLocation) / 2;
-		//var tmp = (anomalyVector - v);
-
-		
-
-		var tmp = anomaly.Normalize() ;
-
+		var anomaly = new Vector((target.X + initialRocketLocation.X) / 2, (target.Y + initialRocketLocation.Y) / 2);
+		var d = (anomaly - v).Length;
 		var normalizedVector = (anomaly - v).Normalize();
-		//return normalizedVector * (300 * d) / (d * d + 1);
-		Debug.WriteLine($"AnomalyX = {anomaly.X}, anomalyY = {anomaly.Y}, length = {d}");
-		return tmp;
-
-
-		//return new Vector(len(Math.Abs(v.X - anomalyX)), len(Math.Abs(v.Y - anomalyY)));
+		return normalizedVector * (300 * d) / (d * d + 1);
 	}
 
 	private static Level GenerateLevel(string name, Gravity gravity, Vector target)
