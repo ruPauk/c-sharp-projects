@@ -10,7 +10,6 @@ namespace Digger
     {
         public CreatureCommand Act(int x, int y)
         {
-            //throw new NotImplementedException();
             var resAct = new CreatureCommand();
             resAct.DeltaX = resAct.DeltaY = 0;
             resAct.TransformTo = this;
@@ -70,9 +69,13 @@ namespace Digger
 
         public bool IsPossibleToStep(int currentX, int currentY, int deltaX, int deltaY)
         {
-            if (currentX + deltaX < 0 || currentX + deltaX > Game.Map.GetUpperBound(0))
+            if (currentX + deltaX < 0 ||
+                currentX + deltaX > Game.Map.GetUpperBound(0) ||
+                Game.Map[currentX + deltaX, currentY]?.GetType() == typeof(Sack))
                 return false;
-            return !(currentY + deltaY < 0 || currentY + deltaY > Game.Map.GetUpperBound(1));
+            return !(currentY + deltaY < 0 ||
+                currentY + deltaY > Game.Map.GetUpperBound(1) ||
+                Game.Map[currentX, currentY + deltaY]?.GetType() == typeof(Sack));
         }
 
         public CreatureCommand GetCreatureCommand(CreatureCommand creatureCommand, int deltaX, int deltaY)
@@ -85,6 +88,118 @@ namespace Digger
 
         public bool DeadInConflict(ICreature conflictedObject)
         {
+            return conflictedObject is Sack;
+        }
+
+        public int GetDrawingPriority()
+        {
+            return drawPriority;
+        }
+
+        public string GetImageFileName()
+        {
+            return sprite;
+        }
+    }
+
+    class Sack : ICreature
+    {
+        static string sprite = "Sack.png";
+        static int drawPriority = 90;
+        public int FallingState = 0;
+
+        public CreatureCommand Act(int x, int y)
+        {
+            var creatureCommand = InitialiseCreatureCommandSack(new CreatureCommand());
+            if (y == Game.Map.GetUpperBound(1))
+            {
+                if (FallingState > 1)
+                {
+                    creatureCommand.TransformTo = new Gold();
+                }
+                return creatureCommand;
+            }
+            if (Game.Map[x, y + 1] != null)
+            {
+                var mapSegmentType = Game.Map[x, y + 1]?.GetType().Name;
+                if (IsSegmentAnyTypeOf(mapSegmentType, "Gold", "Sack", "Terrain"))
+                {
+                    if (FallingState > 1)
+                    {
+                        creatureCommand.TransformTo = new Gold();
+                        FallingState = 0;
+                    }
+                    return creatureCommand;
+                }
+                if (IsSegmentAnyTypeOf(mapSegmentType, "Player"))
+                {
+                    if (FallingState > 0)
+                    {
+                        creatureCommand.DeltaY = 1;
+                    }
+                    return creatureCommand;
+                }
+            }
+            else
+            {
+                FallingState++;
+                creatureCommand.DeltaY = 1;
+            }
+            return creatureCommand;
+        }
+
+        public bool IsSegmentAnyTypeOf(string segment, params string[] args)
+        {
+            if (segment == null)
+                return false;
+            foreach (var obj in args)
+            {
+                if (segment == obj)
+                    return true;
+            }
+            return false;
+        }
+
+        public CreatureCommand InitialiseCreatureCommandSack(CreatureCommand creatureCommand)
+        {
+            creatureCommand.TransformTo = this;
+            creatureCommand.DeltaX = creatureCommand.DeltaY = 0;
+            return creatureCommand;
+        }
+
+        public bool DeadInConflict(ICreature conflictedObject)
+        {
+            return false;
+        }
+
+        public int GetDrawingPriority()
+        {
+            return drawPriority;
+        }
+
+        public string GetImageFileName()
+        {
+            return sprite;
+        }
+    }
+
+    class Gold : ICreature
+    {
+        static string sprite = "Gold.png";
+        static int drawPriority = 90;
+
+        public CreatureCommand Act(int x, int y)
+        {
+            return new CreatureCommand() { DeltaX = 0, DeltaY = 0, TransformTo = this };
+        }
+
+        public bool DeadInConflict(ICreature conflictedObject)
+        {
+            if (conflictedObject is Player)
+            {
+                Game.Scores += 10;
+                return true;
+            }
             return false;
         }
 
