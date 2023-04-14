@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Digger
 {
+    struct Position
+    {
+        public int X;
+        public int Y;
+
+        public Position(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
     class Terrain : ICreature
     {
         public CreatureCommand Act(int x, int y)
         {
-            var resAct = new CreatureCommand();
-            resAct.DeltaX = resAct.DeltaY = 0;
-            resAct.TransformTo = this;
-            return resAct;
+            return new CreatureCommand() { DeltaX = 0, DeltaY = 0, TransformTo = this };
         }
 
         public bool DeadInConflict(ICreature conflictedObject)
@@ -39,32 +45,34 @@ namespace Digger
 
         public CreatureCommand Act(int x, int y)
         {
-            var creatureCommand = new CreatureCommand();
-            switch (Game.KeyPressed)
-            {
-                case System.Windows.Forms.Keys.Left:
-                case System.Windows.Forms.Keys.L:
-                    if (IsPossibleToStep(x, y, -1, 0))
-                        return GetCreatureCommand(creatureCommand, -1, 0);
-                    break;
-                case System.Windows.Forms.Keys.Right:
-                case System.Windows.Forms.Keys.R:
-                    if (IsPossibleToStep(x, y, 1, 0))
-                        return GetCreatureCommand(creatureCommand, 1, 0);
-                    break;
-                case System.Windows.Forms.Keys.Up:
-                case System.Windows.Forms.Keys.U:
-                    if (IsPossibleToStep(x, y, 0, -1))
-                        return GetCreatureCommand(creatureCommand, 0, -1);
-                    break;
-                case System.Windows.Forms.Keys.Down:
-                case System.Windows.Forms.Keys.D:
-                    if (IsPossibleToStep(x, y, 0, 1))
-                        return GetCreatureCommand(creatureCommand, 0, 1);
-                    break;
-            }
-            creatureCommand = GetCreatureCommand(creatureCommand, 0, 0);
-            return creatureCommand;
+            if ((Game.KeyPressed == System.Windows.Forms.Keys.L ||
+                Game.KeyPressed == System.Windows.Forms.Keys.Left) &&
+                IsPossibleToStep(x, y, -1, 0))
+                return new CreatureCommand() { TransformTo = this, DeltaX = -1, DeltaY = 0 };
+            if ((Game.KeyPressed == System.Windows.Forms.Keys.R ||
+                Game.KeyPressed == System.Windows.Forms.Keys.Right) &&
+                IsPossibleToStep(x, y, 1, 0))
+                return new CreatureCommand() { TransformTo = this, DeltaX = 1, DeltaY = 0 };
+            if ((Game.KeyPressed == System.Windows.Forms.Keys.U ||
+                Game.KeyPressed == System.Windows.Forms.Keys.Up) &&
+                IsPossibleToStep(x, y, 0, -1))
+                return new CreatureCommand() { TransformTo = this, DeltaX = 0, DeltaY = -1 };
+            if ((Game.KeyPressed == System.Windows.Forms.Keys.D ||
+                Game.KeyPressed == System.Windows.Forms.Keys.Down) &&
+                IsPossibleToStep(x, y, 0, 1))
+                return new CreatureCommand() { TransformTo = this, DeltaX = 0, DeltaY = 1 };
+            return new CreatureCommand() { TransformTo = this, DeltaX = 0, DeltaY = 0 };
+        }
+
+        public static Position GetLocation()
+        {
+            for (int i = 0; i < Game.MapWidth; i++)
+                for (int j = 0; j < Game.MapHeight; j++)
+                {
+                    if (Game.Map[i, j]?.GetType() == typeof(Player))
+                        return new Position(i, j);
+                }
+            return new Position(-1, -1);
         }
 
         public bool IsPossibleToStep(int currentX, int currentY, int deltaX, int deltaY)
@@ -74,21 +82,17 @@ namespace Digger
                 Game.Map[currentX + deltaX, currentY]?.GetType() == typeof(Sack))
                 return false;
             return !(currentY + deltaY < 0 ||
-                currentY + deltaY > Game.Map.GetUpperBound(1) ||
-                Game.Map[currentX, currentY + deltaY]?.GetType() == typeof(Sack));
-        }
-
-        public CreatureCommand GetCreatureCommand(CreatureCommand creatureCommand, int deltaX, int deltaY)
-        {
-            creatureCommand.DeltaX = deltaX;
-            creatureCommand.DeltaY = deltaY;
-            creatureCommand.TransformTo = this;
-            return creatureCommand;
+               currentY + deltaY > Game.Map.GetUpperBound(1) ||
+               Game.Map[currentX, currentY + deltaY]?.GetType() == typeof(Sack));
         }
 
         public bool DeadInConflict(ICreature conflictedObject)
         {
-            return conflictedObject is Sack;
+            if (conflictedObject is Sack || conflictedObject is Monster)
+            {
+                return true;
+            }
+            return false;
         }
 
         public int GetDrawingPriority()
@@ -135,6 +139,15 @@ namespace Digger
                 {
                     if (FallingState > 0)
                     {
+                        creatureCommand.DeltaY = 1;
+                    }
+                    return creatureCommand;
+                }
+                if (IsSegmentAnyTypeOf(mapSegmentType, "Monster"))
+                {
+                    if (FallingState > 0)
+                    {
+                        FallingState++;
                         creatureCommand.DeltaY = 1;
                     }
                     return creatureCommand;
@@ -200,7 +213,78 @@ namespace Digger
                 Game.Scores += 10;
                 return true;
             }
+            if (conflictedObject is Monster)
+            {
+                return true;
+            }
             return false;
+        }
+
+        public int GetDrawingPriority()
+        {
+            return drawPriority;
+        }
+
+        public string GetImageFileName()
+        {
+            return sprite;
+        }
+    }
+
+    class Monster : ICreature
+    {
+        static string sprite = "Monster.png";
+        static int drawPriority = 100;
+
+        public CreatureCommand Act(int x, int y)
+        {
+            if (Player.GetLocation().X == -1)
+                return new CreatureCommand() { TransformTo = this, DeltaX = 0, DeltaY = 0 };
+            return GetDirection(x, y);
+        }
+
+        public CreatureCommand GetDirection(int x, int y)
+        {
+            var result = new CreatureCommand() { TransformTo = this, DeltaX = 0, DeltaY = 0 };
+            double bestWay = GetDistanceToPlayer(x, y);
+            bestWay = TryDirection(bestWay, x, y, -1, 0, result);
+            bestWay = TryDirection(bestWay, x, y, 1, 0, result);
+            bestWay = TryDirection(bestWay, x, y, 0, -1, result);
+            bestWay = TryDirection(bestWay, x, y, 0, 1, result);
+            return result;
+        }
+
+        public double TryDirection(double bestWay, int x, int y, int deltaX, int deltaY, CreatureCommand result)
+        {
+            var newBestWay = GetDistanceToPlayer(x + deltaX, y + deltaY);
+            if (IsDirectionPossible(x + deltaX, y + deltaY) && newBestWay <= bestWay)
+            {
+                result.DeltaX = deltaX;
+                result.DeltaY = deltaY;
+                return newBestWay;
+            }
+            return bestWay;
+        }
+
+        public bool IsDirectionPossible(int x, int y)
+        {
+            return x >= 0 && x <= Game.MapWidth - 1 && y >= 0 && y <= Game.MapHeight - 1 &&
+                Game.Map[x, y]?.GetType() != typeof(Terrain) &&
+                Game.Map[x, y]?.GetType() != typeof(Sack) &&
+                Game.Map[x, y]?.GetType() != typeof(Monster);
+        }
+
+        public double GetDistanceToPlayer(int x, int y)
+        {
+            var deltaX = Math.Abs(x - Player.GetLocation().X);
+            var deltaY = Math.Abs(y - Player.GetLocation().Y);
+            var distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            return Math.Round(distance, 15);
+        }
+
+        public bool DeadInConflict(ICreature conflictedObject)
+        {
+            return conflictedObject is Sack || conflictedObject is Monster;
         }
 
         public int GetDrawingPriority()
