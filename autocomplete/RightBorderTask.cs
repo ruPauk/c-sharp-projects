@@ -19,13 +19,18 @@ namespace Autocomplete
         {
             // IReadOnlyList похож на List, но у него нет методов модификации списка.
             // Этот код решает задачу, но слишком неэффективно. Замените его на бинарный поиск!
-            for (int i = phrases.Count-1; i >= 0; i--)
+            while (left + 1 != right)
             {
-                if (string.Compare(prefix, phrases[i], StringComparison.OrdinalIgnoreCase) >= 0 
-                    || phrases[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                    return i + 1;
+                int middle = (left + right) / 2;
+                if (string.Compare(phrases[middle], prefix, StringComparison.OrdinalIgnoreCase) > 0
+                && !phrases[middle].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    right = middle;
+                }
+                else
+                    left = middle;
             }
-            return 0;
+            return right;
         }
     }
 }
