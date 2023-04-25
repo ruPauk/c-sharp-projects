@@ -24,13 +24,26 @@ namespace Autocomplete
         {
             // IReadOnlyList похож на List, но у него нет методов модификации списка.
             // Этот код решает задачу, но слишком неэффективно. Замените его на бинарный поиск!
-            for (int i = 0; i < phrases.Count; i++)
+            if (left + 1 == right)
             {
-                if (string.Compare(prefix, phrases[i], StringComparison.OrdinalIgnoreCase) < 0
-                    || phrases[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                    return i - 1;
+                return left;
             }
-            return phrases.Count-1;
+
+            var middle = (left + right) / 2;
+            if (IsCurrentElementRatherLeftBorder(phrases, prefix, middle))
+                left = middle;
+            else
+                right = middle;
+            return GetLeftBorderIndex(phrases, prefix, left, right);
+        }
+
+        public static bool IsCurrentElementRatherLeftBorder(IReadOnlyList<string> phrases, string prefix, int middle)
+        {
+            if (string.Compare(phrases[middle], prefix, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

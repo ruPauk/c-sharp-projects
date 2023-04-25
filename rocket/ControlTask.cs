@@ -44,4 +44,11 @@ public class ControlTask
 
 		return a.X * b.X + a.Y * b.Y;
     }
+
+	private static Vector GetVector(Vector location, double direction)
+    {
+		var x = location.X * Math.Cos(direction);
+		var y = location.Y * Math.Sin(direction);
+		return new Vector(x, y);
+    }
 }
