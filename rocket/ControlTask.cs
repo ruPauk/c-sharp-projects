@@ -7,27 +7,16 @@ public class ControlTask
 {
 	public static Turn ControlRocket(Rocket rocket, Vector target)
 	{
-		
 		var targetVector = target - rocket.Location;
-		var currentVector = rocket.Direction * 1 / 3 + rocket.Velocity.Angle * 2 / 3;
-
-		var rocketVector = 
+		var rocketVector = GetVector(rocket.Location, rocket.Direction);
 		//var condition = rocket.Direction % (Math.PI * 2) > (targetVector.Angle) % (Math.PI * 2) * 0.75;
-		//var condition = rocket.Direction % (Math.PI * 2) > (targetVector.Angle) % (Math.PI * 2) * (1 - rocket.Velocity.Length/100);
-
-		//var condition = rocket.Direction % (Math.PI * 2) > (targetVector.Angle) % (Math.PI * 2) * 0.75;
-		//var condition = GetNormalizedAngle(rocket.Direction) > GetNormalizedAngle(targetVector.Angle) * 0.75;
-
-		var scalarValue = GetScalarMultiplication(targetVector, currentVector);
-		if (Math.Abs(scalarValue) > 0.98f)
-			return Turn.None;
-		var condition = scalarValue < 0 ? Turn.Left : Turn.Right;
-		
-
-		Debug.WriteLine($"N = {GetScalarMultiplication(targetVector, rocket.Velocity)}, Dir = {rocket.Direction}, V = {rocket.Velocity}, tVAngle = {targetVector.Angle}, ND = {GetNormalizedAngle(rocket.Direction)}");
-		//return condition ? Turn.Left : Turn.Right;
-		//return condition;
-		return Turn.None;
+		var dirNorm = GetNormalizedAngle(rocket.Direction);
+		var tVNorm = GetNormalizedAngle(targetVector.Angle);
+		var condition =  dirNorm > tVNorm * 0.75;
+		var res = condition ? Turn.Left : Turn.Right;
+		res = (Math.Abs(Math.Abs(dirNorm) - Math.Abs(tVNorm)) < 0.05) ? Turn.None : res;
+		Debug.WriteLine($"Dir - {GetNormalizedAngle(rocket.Direction)}, tVA - {GetNormalizedAngle(targetVector.Angle)}, con - {res}, V - {rocket.Velocity}");
+		return res;
 	}
 
 	private static double GetNormalizedAngle(double angle)
@@ -49,6 +38,6 @@ public class ControlTask
     {
 		var x = location.X * Math.Cos(direction);
 		var y = location.Y * Math.Sin(direction);
-		return new Vector(x, y);
+		return new Vector(x, y).Normalize();
     }
 }

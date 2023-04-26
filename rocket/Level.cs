@@ -24,7 +24,7 @@ public class Level
 
 	public void Move(Vector spaceSize, Turn turn)
 	{
-		var force = ForcesTask.Sum(ForcesTask.GetThrustForce(0.10), ForcesTask.ConvertGravityToForce(Gravity, spaceSize));
+		var force = ForcesTask.Sum(ForcesTask.GetThrustForce(1.0), ForcesTask.ConvertGravityToForce(Gravity, spaceSize));
 		Rocket = physics.MoveRocket(Rocket, force, turn, spaceSize, 0.3);
 	}
 
