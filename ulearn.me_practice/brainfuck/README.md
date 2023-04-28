@@ -3,7 +3,7 @@ The task was to implement an interpreter for the well known minimalistic program
 This task served as delegates training.
 
 <div align="center" >
-  <img width="50%" src="/brainfuck/Brainfuck.gif">
+  <img width="50%" src="/ulearn.me_practice/brainfuck/Brainfuck.gif">
 </div>
 
 ## Installing
